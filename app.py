@@ -2,77 +2,106 @@ import streamlit as st
 import cv2
 import numpy as np
 import os
-from deepface import DeepFace
 from supabase import create_client
 
-# -------------------------
-# SUPABASE CONFIG
-# -------------------------
+# -------------------
+# SUPABASE
+# -------------------
 
 SUPABASE_URL = os.environ.get("sdmonyqbrckcblohqzvw")
 SUPABASE_KEY = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbW9ueXFicmNrY2Jsb2hxenZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjI2MzUsImV4cCI6MjA4ODYzODYzNX0.vRTzQS8ISS-KxJMNZ4dfCZyiml8d7u0D16OuZJRgwfk")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-st.title("🔐 Face Recognition System")
+# -------------------
+# PAGE
+# -------------------
+
+st.title("Simple Face Recognition")
 
 menu = st.sidebar.selectbox(
     "Menu",
-    ["Register Face", "Detect Face"]
+    ["Register", "Detect"]
 )
 
-# -------------------------
-# REGISTER FACE
-# -------------------------
+# -------------------
+# FACE FEATURE
+# -------------------
 
-if menu == "Register Face":
+def extract_feature(image):
 
-    st.header("Register Face")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    resized = cv2.resize(gray, (100,100))
+
+    feature = resized.flatten()
+
+    return feature.tolist()
+
+# -------------------
+# REGISTER
+# -------------------
+
+if menu == "Register":
 
     name = st.text_input("Enter Name")
 
-    img_file = st.camera_input("Capture Image")
+    img = st.camera_input("Capture Face")
 
-    if img_file and name:
+    if img and name:
 
-        with open("register.jpg", "wb") as f:
-            f.write(img_file.getbuffer())
+        bytes_data = img.getvalue()
 
-        # upload image to supabase storage
-        with open("register.jpg", "rb") as f:
-            supabase.storage.from_("faces").upload(
-                f"{name}.jpg",
-                f
-            )
+        file_bytes = np.asarray(bytearray(bytes_data), dtype=np.uint8)
 
-        st.success("Face Registered Successfully")
+        frame = cv2.imdecode(file_bytes, 1)
 
-# -------------------------
-# DETECT FACE
-# -------------------------
+        feature = extract_feature(frame)
 
-if menu == "Detect Face":
+        supabase.table("faces").insert({
+            "name": name,
+            "feature": feature
+        }).execute()
 
-    st.header("Detect Face")
+        st.success("Face Registered")
 
-    img_file = st.camera_input("Capture Image")
+# -------------------
+# DETECT
+# -------------------
 
-    if img_file:
+if menu == "Detect":
 
-        with open("test.jpg", "wb") as f:
-            f.write(img_file.getbuffer())
+    img = st.camera_input("Capture Face")
 
-        # example comparison (single user)
-        result = DeepFace.verify(
-            img1_path="test.jpg",
-            img2_path="register.jpg",
-            model_name="Facenet"
-        )
+    if img:
 
-        if result["verified"]:
-            st.success("✅ MATCH FOUND")
-        else:
-            st.error("❌ NO MATCH FOUND")
+        bytes_data = img.getvalue()
 
+        file_bytes = np.asarray(bytearray(bytes_data), dtype=np.uint8)
 
+        frame = cv2.imdecode(file_bytes, 1)
+
+        new_feature = np.array(extract_feature(frame))
+
+        data = supabase.table("faces").select("*").execute()
+
+        found = False
+
+        for row in data.data:
+
+            stored = np.array(row["feature"])
+
+            distance = np.linalg.norm(new_feature - stored)
+
+            if distance < 2000:
+
+                st.success(f"Match Found: {row['name']}")
+
+                found = True
+
+                break
+
+        if not found:
+
+            st.error("No Match Found")
 
