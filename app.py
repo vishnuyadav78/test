@@ -7,8 +7,8 @@ from supabase import create_client
 # SUPABASE CONNECTION
 # -----------------------------
 
-SUPABASE_URL = st.secrets["sdmonyqbrckcblohqzvw"]
-SUPABASE_KEY = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbW9ueXFicmNrY2Jsb2hxenZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjI2MzUsImV4cCI6MjA4ODYzODYzNX0.vRTzQS8ISS-KxJMNZ4dfCZyiml8d7u0D16OuZJRgwfk"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -108,6 +108,7 @@ if menu == "Detect Face":
         if not found:
 
             st.error("❌ NO MATCH FOUND")
+
 
 
 
