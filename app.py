@@ -4,51 +4,57 @@ import numpy as np
 import cv2
 from supabase import create_client
 
-# ------------------------
-# SUPABASE CONNECTION
-# ------------------------
+# -------------------------
+# SUPABASE CONFIG
+# -------------------------
 
-SUPABASE_URL = "PASTE_URL_HERE"
-SUPABASE_KEY = "PASTE_KEY_HERE"
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-st.title("Face Recognition System")
+# -------------------------
+# PAGE TITLE
+# -------------------------
+
+st.title("🔐 Face Recognition System")
 
 menu = st.sidebar.selectbox(
-    "Select",
+    "Menu",
     ["Register Face", "Detect Face"]
 )
 
-# ------------------------
+# -------------------------
 # FACE EMBEDDING FUNCTION
-# ------------------------
+# -------------------------
 
 def get_embedding(image):
 
-    faces = face_recognition.face_locations(image)
+    face_locations = face_recognition.face_locations(image)
 
-    if len(faces) == 0:
+    if len(face_locations) == 0:
         return None
 
     encoding = face_recognition.face_encodings(
         image,
-        faces
+        face_locations
     )[0]
 
     return encoding.tolist()
 
-# ------------------------
+# -------------------------
 # REGISTER FACE
-# ------------------------
+# -------------------------
 
 if menu == "Register Face":
+
+    st.header("Register New Face")
 
     name = st.text_input("Enter Name")
 
     img_file = st.camera_input("Capture Face")
 
-    if img_file:
+    if img_file and name != "":
 
         bytes_data = img_file.getvalue()
 
@@ -74,13 +80,15 @@ if menu == "Register Face":
 
             }).execute()
 
-            st.success("Face Registered")
+            st.success("Face Registered Successfully")
 
-# ------------------------
+# -------------------------
 # DETECT FACE
-# ------------------------
+# -------------------------
 
 if menu == "Detect Face":
+
+    st.header("Face Detection")
 
     img_file = st.camera_input("Capture Image")
 
@@ -119,7 +127,7 @@ if menu == "Detect Face":
                 if match[0]:
 
                     st.success(
-                        f"Match Found: {row['name']}"
+                        f"✅ MATCH FOUND: {row['name']}"
                     )
 
                     found = True
@@ -127,4 +135,4 @@ if menu == "Detect Face":
 
             if not found:
 
-                st.error("No Match")
+                st.error("❌ NO MATCH FOUND")
