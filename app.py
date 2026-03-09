@@ -1,32 +1,31 @@
 import streamlit as st
 import cv2
 import numpy as np
-import os
 from supabase import create_client
 
-# -------------------
-# SUPABASE
-# -------------------
+# -----------------------------
+# SUPABASE CONNECTION
+# -----------------------------
 
-SUPABASE_URL = os.environ.get("sdmonyqbrckcblohqzvw")
-SUPABASE_KEY = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbW9ueXFicmNrY2Jsb2hxenZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjI2MzUsImV4cCI6MjA4ODYzODYzNX0.vRTzQS8ISS-KxJMNZ4dfCZyiml8d7u0D16OuZJRgwfk")
+SUPABASE_URL = st.secrets["sdmonyqbrckcblohqzvw"]
+SUPABASE_KEY = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbW9ueXFicmNrY2Jsb2hxenZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjI2MzUsImV4cCI6MjA4ODYzODYzNX0.vRTzQS8ISS-KxJMNZ4dfCZyiml8d7u0D16OuZJRgwfk"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# -------------------
-# PAGE
-# -------------------
+# -----------------------------
+# PAGE TITLE
+# -----------------------------
 
-st.title("Simple Face Recognition")
+st.title("🔐 Face Recognition System")
 
 menu = st.sidebar.selectbox(
     "Menu",
-    ["Register", "Detect"]
+    ["Register Face", "Detect Face"]
 )
 
-# -------------------
-# FACE FEATURE
-# -------------------
+# -----------------------------
+# FEATURE EXTRACTION
+# -----------------------------
 
 def extract_feature(image):
 
@@ -38,50 +37,56 @@ def extract_feature(image):
 
     return feature.tolist()
 
-# -------------------
-# REGISTER
-# -------------------
+# -----------------------------
+# REGISTER FACE
+# -----------------------------
 
-if menu == "Register":
+if menu == "Register Face":
+
+    st.header("Register New Face")
 
     name = st.text_input("Enter Name")
 
-    img = st.camera_input("Capture Face")
+    img_file = st.camera_input("Capture Face")
 
-    if img and name:
+    if img_file and name:
 
-        bytes_data = img.getvalue()
+        bytes_data = img_file.getvalue()
 
         file_bytes = np.asarray(bytearray(bytes_data), dtype=np.uint8)
 
-        frame = cv2.imdecode(file_bytes, 1)
+        image = cv2.imdecode(file_bytes, 1)
 
-        feature = extract_feature(frame)
+        feature = extract_feature(image)
 
         supabase.table("faces").insert({
+
             "name": name,
             "feature": feature
+
         }).execute()
 
-        st.success("Face Registered")
+        st.success("Face Registered Successfully")
 
-# -------------------
-# DETECT
-# -------------------
+# -----------------------------
+# DETECT FACE
+# -----------------------------
 
-if menu == "Detect":
+if menu == "Detect Face":
 
-    img = st.camera_input("Capture Face")
+    st.header("Face Detection")
 
-    if img:
+    img_file = st.camera_input("Capture Image")
 
-        bytes_data = img.getvalue()
+    if img_file:
+
+        bytes_data = img_file.getvalue()
 
         file_bytes = np.asarray(bytearray(bytes_data), dtype=np.uint8)
 
-        frame = cv2.imdecode(file_bytes, 1)
+        image = cv2.imdecode(file_bytes, 1)
 
-        new_feature = np.array(extract_feature(frame))
+        new_feature = np.array(extract_feature(image))
 
         data = supabase.table("faces").select("*").execute()
 
@@ -95,13 +100,17 @@ if menu == "Detect":
 
             if distance < 2000:
 
-                st.success(f"Match Found: {row['name']}")
+                st.success(f"✅ MATCH FOUND: {row['name']}")
 
                 found = True
-
                 break
 
         if not found:
 
-            st.error("No Match Found")
+            st.error("❌ NO MATCH FOUND")
+
+
+
+
+
 
