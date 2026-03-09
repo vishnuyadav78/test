@@ -1,7 +1,5 @@
 streamlit
-deepface
 opencv-python-headless
-numpy==1.23.5
+numpy
 pillow
 supabase
-tensorflow==2.12.0
