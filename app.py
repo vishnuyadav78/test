@@ -73,6 +73,6 @@ if menu == "Detect Face":
             st.success("✅ MATCH FOUND")
         else:
             st.error("❌ NO MATCH FOUND")
-SUPABASE_URL = st.secrets["sdmonyqbrckcblohqzvw"]
-SUPABASE_KEY = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbW9ueXFicmNrY2Jsb2hxenZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjI2MzUsImV4cCI6MjA4ODYzODYzNX0.vRTzQS8ISS-KxJMNZ4dfCZyiml8d7u0D16OuZJRgwfk"]
+
+
 
